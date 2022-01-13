@@ -83,11 +83,23 @@ def label_bluring(inputs):
             outputs[batchCnt, index, ...] = cv2.GaussianBlur(inputs[batchCnt, index, ...].astype(np.float), (7, 7), 0)
     return outputs
 
+def recursive_glob(rootdir=".", suffix=""):
+    """Performs recursive glob with given suffix and rootdir
+        :param rootdir is the root directory
+        :param suffix is the suffix to be searched
+    """
+    return [
+        os.path.join(looproot, filename)
+        for looproot, _, filenames in os.walk(rootdir)
+        for filename in filenames
+        if filename.endswith(suffix)
+    ]
+
 
 class DeepGlobe(data.Dataset):
     """input and label image dataset"""
 
-    def __init__(self, root, ids, label=False, transform=False):
+    def __init__(self, root,  label=False, transform=False):
         super(DeepGlobe, self).__init__()
         """
         Args:
@@ -98,7 +110,7 @@ class DeepGlobe(data.Dataset):
         self.root = root
         self.label = label
         self.transform = transform
-        self.ids = ids
+        self.ids = recursive_glob(self.root,'jpg')
         self.classdict = {1: "urban", 2: "agriculture", 3: "rangeland", 4: "forest", 5: "water", 6: "barren", 0: "unknown"}
         
         self.color_jitter = transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.04)
@@ -106,14 +118,14 @@ class DeepGlobe(data.Dataset):
 
     def __getitem__(self, index):
         sample = {}
-        sample['id'] = self.ids[index][:-8]
-        image = Image.open(os.path.join(self.root,  self.ids[index])) # w, h
+        sample['id'] = os.path.basename(self.ids[index])[:-8]
+        image = Image.open(self.ids[index]) # w, h
         sample['image'] = image
         # sample['image'] = transforms.functional.adjust_contrast(image, 1.4)
         if self.label:
             # label = scipy.io.loadmat(join(self.root, 'Notification/' + self.ids[index].replace('_sat.jpg', '_mask.mat')))["label"]
             # label = Image.fromarray(label)
-            label = Image.open(os.path.join(self.root, self.ids[index].replace('_sat.jpg', '_mask.png')))
+            label = Image.open( self.ids[index].replace('_sat.jpg', '_mask.png'))
             sample['label'] = label
         if self.transform and self.label:
             image, label = self._transform(image, label)

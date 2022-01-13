@@ -12,15 +12,15 @@ fopen_train = open('./train.txt','r')
 lines_train=fopen_train.readlines()
 
 for line in lines_train:
-    line_train_image = os.path.join(root,line.strip("/n"))
+    line_train_image = os.path.join(root,line.strip("\n"))
     line_train_label = line_train_image.replace('_sat.jpg', '_mask.png')
-    shutil.copy(line_train_image,root_train)
-    shutil.copy(line_train_label, root_train)
+    shutil.move(line_train_image,root_train)
+    shutil.move(line_train_label, root_train)
     # print(line_train_image)
     # print(line_train_label)
 
 for line in lines_test:
-    line_test_image = os.path.join(root,line.strip("/n"))
+    line_test_image = os.path.join(root,line.strip("\n"))
     line_test_label = line_test_image.replace('_sat.jpg', '_mask.png')
-    shutil.copy(line_test_image,root_test)
-    shutil.copy(line_test_label, root_test)
+    shutil.move(line_test_image,root_test)
+    shutil.move(line_test_label, root_test)
